@@ -2,7 +2,7 @@
 
 #include "symbols/dwarf/resolver.hpp"
 
-#include <cpptrace/cpptrace.hpp>
+#include <cpptrace/basic.hpp>
 #include "symbols/dwarf/dwarf.hpp" // has dwarf #includes
 #include "symbols/symbols.hpp"
 #include "utils/common.hpp"
@@ -10,15 +10,16 @@
 #include "utils/utils.hpp"
 #include "platform/path.hpp"
 #include "platform/program_name.hpp" // For CPPTRACE_MAX_PATH
+
+#if IS_APPLE
 #include "binary/mach-o.hpp"
+#endif
 
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <functional>
-#include <iterator>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <unordered_map>

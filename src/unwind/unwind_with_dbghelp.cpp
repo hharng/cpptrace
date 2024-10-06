@@ -1,15 +1,14 @@
 #ifdef CPPTRACE_UNWIND_WITH_DBGHELP
 
-#include <cpptrace/cpptrace.hpp>
+#include <cpptrace/basic.hpp>
 #include "unwind/unwind.hpp"
 #include "utils/common.hpp"
 #include "utils/utils.hpp"
 #include "platform/dbghelp_syminit_manager.hpp"
 
-#include <algorithm>
-#include <cstdint>
 #include <vector>
 #include <mutex>
+#include <cstddef>
 
 #include <windows.h>
 #include <dbghelp.h>

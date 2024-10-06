@@ -6,14 +6,12 @@
 #include <typeinfo>
 
 #include "platform/platform.hpp"
-#include "utils/common.hpp"
 #include "utils/microfmt.hpp"
-#include "utils/utils.hpp"
 
 #ifndef _MSC_VER
- #include <array>
  #include <string.h>
  #if IS_WINDOWS
+  #define WIN32_LEAN_AND_MEAN
   #include <windows.h>
  #else
   #include <sys/mman.h>
@@ -25,7 +23,7 @@
    #endif
   #else
    #include <fstream>
-   #include <iomanip>
+   #include <ios>
   #endif
  #endif
 #endif
@@ -107,7 +105,11 @@ namespace cpptrace {
         }
         #else
         int get_page_size() {
-            return getpagesize();
+            #if defined(_SC_PAGESIZE)
+                return sysconf(_SC_PAGESIZE);
+            #else
+                return getpagesize();
+            #endif
         }
         constexpr auto memory_readonly = PROT_READ;
         constexpr auto memory_readwrite = PROT_READ | PROT_WRITE;

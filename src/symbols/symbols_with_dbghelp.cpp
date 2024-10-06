@@ -1,16 +1,18 @@
 #ifdef CPPTRACE_GET_SYMBOLS_WITH_DBGHELP
 
-#include <cpptrace/cpptrace.hpp>
+#include <cpptrace/basic.hpp>
 #include "symbols/symbols.hpp"
 #include "platform/dbghelp_syminit_manager.hpp"
+#include "binary/object.hpp"
+#include "utils/common.hpp"
+#include "utils/error.hpp"
 
-#include <memory>
 #include <mutex>
 #include <regex>
-#include <stdexcept>
 #include <system_error>
 #include <vector>
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <dbghelp.h>
 
@@ -337,8 +339,8 @@ namespace dbghelp {
         symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
         symbol->MaxNameLen = MAX_SYM_NAME;
         union { DWORD64 a; DWORD b; } displacement;
-        IMAGEHLP_LINE64 line;
-        bool got_line = SymGetLineFromAddr64(proc, addr, &displacement.b, &line);
+        IMAGEHLP_LINE line;
+        bool got_line = SymGetLineFromAddr(proc, addr, &displacement.b, &line);
         if(SymFromAddr(proc, addr, &displacement.a, symbol)) {
             if(got_line) {
                 IMAGEHLP_STACK_FRAME frame;

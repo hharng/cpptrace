@@ -1,8 +1,10 @@
 #ifdef CPPTRACE_GET_SYMBOLS_WITH_LIBBACKTRACE
 
-#include <cpptrace/cpptrace.hpp>
+#include <cpptrace/basic.hpp>
 #include "symbols/symbols.hpp"
 #include "platform/program_name.hpp"
+#include "utils/error.hpp"
+#include "utils/common.hpp"
 
 #include <cstdint>
 #include <cstdio>

@@ -1,6 +1,6 @@
 #ifdef CPPTRACE_UNWIND_WITH_WINAPI
 
-#include <cpptrace/cpptrace.hpp>
+#include <cpptrace/basic.hpp>
 #include "unwind/unwind.hpp"
 #include "utils/common.hpp"
 #include "utils/utils.hpp"
@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <vector>
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 // Fucking windows headers

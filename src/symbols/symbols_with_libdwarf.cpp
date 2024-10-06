@@ -2,10 +2,9 @@
 
 #include "symbols/symbols.hpp"
 
-#include <cpptrace/cpptrace.hpp>
+#include <cpptrace/basic.hpp>
 #include "dwarf/resolver.hpp"
 #include "utils/common.hpp"
-#include "utils/error.hpp"
 #include "utils/utils.hpp"
 
 #include <cstdint>
@@ -15,8 +14,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include <iostream>
-#include <iomanip>
 
 namespace cpptrace {
 namespace detail {

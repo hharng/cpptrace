@@ -1,13 +1,13 @@
 #ifndef SYMBOLS_HPP
 #define SYMBOLS_HPP
 
-#include <cpptrace/cpptrace.hpp>
+#include <cpptrace/basic.hpp>
 
-#include <memory>
-#include <vector>
+#include <functional>
+#include <string>
 #include <unordered_map>
-
-#include "binary/object.hpp"
+#include <utility>
+#include <vector>
 
 namespace cpptrace {
 namespace detail {
