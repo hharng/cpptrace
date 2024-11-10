@@ -178,7 +178,7 @@ option(CPPTRACE_UNPREFIXED_TRY_CATCH "" OFF)
 option(CPPTRACE_USE_EXTERNAL_GTEST "" OFF)
 set(CPPTRACE_ZSTD_URL "https://github.com/facebook/zstd/releases/download/v1.5.6/zstd-1.5.6.tar.gz" CACHE STRING "")
 set(CPPTRACE_LIBDWARF_REPO "https://github.com/davea42/libdwarf-code.git" CACHE STRING "")
-set(CPPTRACE_LIBDWARF_TAG "c658d71f036e082ecf0bcfff6613ea24560ad429" CACHE STRING "") # v0.11.0 ++
+set(CPPTRACE_LIBDWARF_TAG "f4f6f782a06ab0618861cf0c4474989376c69c76" CACHE STRING "") # v0.11.0 ++
 set(CPPTRACE_LIBDWARF_SHALLOW "1" CACHE STRING "")
 
 mark_as_advanced(
