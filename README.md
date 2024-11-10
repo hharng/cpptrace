@@ -8,7 +8,7 @@
 <br/>
 [![Try on Compiler Explorer](https://img.shields.io/badge/-Compiler%20Explorer-brightgreen?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAYAAAAmlE46AAAACXBIWXMAAACwAAAAsAEUaqtpAAABSElEQVQokYVTsU7DMBB9QMTCEJbOMLB5oF0tRfUPIPIJZctYJkZYu3WMxNL+ARUfQKpImcPgDYnsXWBgYQl61TkYyxI3Wef37j3fnQ/6vkcsikY9AbiWq0mpbevDBmLRqDEAA4CEHMADgFRwrwDmch6X2i73RCFVHvC/WCeCMAFpC2AFoPPu5x4md4rnAN4luS61nYWSgauNU8ydkr0bLTMYAoIYtWqxM4LtEumeERDtfUjlMDrp7L67iddyyJtOvUIu2rquVn4iiVSOKXYhiMSJWLwUJZLuQ2CWmVldV4MT11UmXgB8fr0dX3WP6VHMiVrscim6Da2mJxffzwSU2v6xWzSKmzQ4cUTOaCBTvWgU14xkzjhckKm/q3wnrRAcAhksxMZNAdxEf0fRKI6E8zqT1C0X28ccRpqAUltW5pu4sxv5Mb8B4AciE3bHMxz/+gAAAABJRU5ErkJggg==&labelColor=2C3239&style=flat&label=Try+it+on&color=30C452)](https://godbolt.org/z/c6TqTzqcf)
 
-Cpptrace is a simple, portable, and self-contained C++ stacktrace library supporting C++11 and greater on Linux, macOS,
+Cpptrace is a simple and portable C++ stacktrace library supporting C++11 and greater on Linux, macOS,
 and Windows including MinGW and Cygwin environments. The goal: Make stack traces simple for once.
 
 Cpptrace also has a C API, docs [here](docs/c-api.md).
@@ -20,25 +20,27 @@ Cpptrace also has a C API, docs [here](docs/c-api.md).
 - [FAQ](#faq)
   - [What about C++23 `<stacktrace>`?](#what-about-c23-stacktrace)
   - [What does cpptrace have over other C++ stacktrace libraries?](#what-does-cpptrace-have-over-other-c-stacktrace-libraries)
-- [In-Depth Documentation](#in-depth-documentation)
-  - [Prerequisites](#prerequisites)
-  - [`namespace cpptrace`](#namespace-cpptrace)
-    - [Stack Traces](#stack-traces)
-    - [Object Traces](#object-traces)
-    - [Raw Traces](#raw-traces)
-    - [Utilities](#utilities)
-    - [Configuration](#configuration)
-    - [Traces From All Exceptions](#traces-from-all-exceptions)
-      - [Removing the `CPPTRACE_` prefix](#removing-the-cpptrace_-prefix)
-      - [How it works](#how-it-works)
-      - [Performance](#performance)
-    - [Traced Exception Objects](#traced-exception-objects)
-  - [Wrapping std::exceptions](#wrapping-stdexceptions)
-  - [Exception handling with cpptrace](#exception-handling-with-cpptrace)
+- [Prerequisites](#prerequisites)
+- [Basic Usage](#basic-usage)
+- [`namespace cpptrace`](#namespace-cpptrace)
+  - [Stack Traces](#stack-traces)
+  - [Object Traces](#object-traces)
+  - [Raw Traces](#raw-traces)
+  - [Utilities](#utilities)
+  - [Configuration](#configuration)
+  - [Traces From All Exceptions](#traces-from-all-exceptions)
+    - [Removing the `CPPTRACE_` prefix](#removing-the-cpptrace_-prefix)
+    - [How it works](#how-it-works)
+    - [Performance](#performance)
+  - [Traced Exception Objects](#traced-exception-objects)
+    - [Wrapping std::exceptions](#wrapping-stdexceptions)
+    - [Exception handling with cpptrace exception objects](#exception-handling-with-cpptrace-exception-objects)
+  - [Terminate Handling](#terminate-handling)
   - [Signal-Safe Tracing](#signal-safe-tracing)
   - [Utility Types](#utility-types)
+  - [Headers](#headers)
 - [Supported Debug Formats](#supported-debug-formats)
-- [Usage](#usage)
+- [How to Include The Library](#how-to-include-the-library)
   - [CMake FetchContent](#cmake-fetchcontent)
   - [System-Wide Installation](#system-wide-installation)
   - [Local User Installation](#local-user-installation)
@@ -134,7 +136,7 @@ include(FetchContent)
 FetchContent_Declare(
   cpptrace
   GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
-  GIT_TAG        v0.7.1 # <HASH or TAG>
+  GIT_TAG        v0.7.2 # <HASH or TAG>
 )
 FetchContent_MakeAvailable(cpptrace)
 target_link_libraries(your_target cpptrace::cpptrace)
@@ -157,7 +159,7 @@ information.
 On macOS it is recommended to generate a `.dSYM` file, see [Platform Logistics](#platform-logistics) below.
 
 For other ways to use the library, such as through package managers, a system-wide installation, or on a platform
-without internet access see [Usage](#usage) below.
+without internet access see [How to Include The Library](#how-to-include-the-library) below.
 
 # FAQ
 
@@ -186,23 +188,24 @@ for a software package which just provides diagnostics as opposed to core functi
 support for resolving inlined calls by default for DWARF symbols (boost does not do this, backward-cpp can do this but
 only for some back-ends), better support for resolving full function signatures, and nicer API, among other features.
 
-# In-Depth Documentation
-
-## Prerequisites
+# Prerequisites
 
 > [!IMPORTANT]
 > Debug info (`-g`/`/Z7`/`/Zi`/`/DEBUG`/`-DBUILD_TYPE=Debug`/`-DBUILD_TYPE=RelWithDebInfo`) is required for complete
 > trace information.
 
-## `namespace cpptrace`
+# Basic Usage
 
-`cpptrace::generate_trace()` can be used to generate a stacktrace object at the current call site. Resolved frames can
-be accessed from this object with `.frames` and also the trace can be printed with `.print()`. Cpptrace also provides a
-method to get lightweight raw traces, which are just vectors of program counters, which can be resolved at a later time.
+`cpptrace::generate_trace()` can be used to generate a `stacktrace` object at the current call site. Resolved frames can
+be accessed from this object with `.frames` and the trace can be printed with `.print()`. Cpptrace also provides a
+method to get light-weight raw traces with `cpptrace::generate_raw_trace()`, which are just vectors of program counters,
+which can be resolved at a later time.
+
+# `namespace cpptrace`
 
 All functions are thread-safe unless otherwise noted.
 
-### Stack Traces
+## Stack Traces
 
 The core resolved stack trace object. Generate a trace with `cpptrace::generate_trace()` or
 `cpptrace::stacktrace::current()`. On top of a set of helper functions `struct stacktrace` allows
@@ -254,7 +257,7 @@ namespace cpptrace {
 }
 ```
 
-### Object Traces
+## Object Traces
 
 Object traces contain the most basic information needed to construct a stack trace outside the currently running
 executable. It contains the raw address, the address in the binary (ASLR and the object file's memory space and whatnot
@@ -283,7 +286,7 @@ namespace cpptrace {
 }
 ```
 
-### Raw Traces
+## Raw Traces
 
 Raw trace access: A vector of program counters. These are ideal for fast and cheap traces you want to resolve later.
 
@@ -308,7 +311,7 @@ namespace cpptrace {
 }
 ```
 
-### Utilities
+## Utilities
 
 `cpptrace::demangle` provides a helper function for name demangling, since it has to implement that helper internally
 anyways.
@@ -340,7 +343,7 @@ namespace cpptrace {
 }
 ```
 
-### Configuration
+## Configuration
 
 `cpptrace::absorb_trace_exceptions`: Configure whether the library silently absorbs internal exceptions and continues.
 Default is true.
@@ -372,7 +375,7 @@ namespace cpptrace {
 }
 ```
 
-### Traces From All Exceptions
+## Traces From All Exceptions
 
 Cpptrace provides `CPPTRACE_TRY` and `CPPTRACE_CATCH` macros that allow a stack trace to be collected from the current
 thrown exception object, with minimal or no overhead in the non-throwing path:
@@ -449,7 +452,7 @@ CPPTRACE_TRY {
 }
 ```
 
-#### Removing the `CPPTRACE_` prefix
+### Removing the `CPPTRACE_` prefix
 
 `CPPTRACE_TRY` is a little cumbersome to type. To remove the `CPPTRACE_` prefix you can use the
 `CPPTRACE_UNPREFIXED_TRY_CATCH` cmake option or the `CPPTRACE_UNPREFIXED_TRY_CATCH` preprocessor definition:
@@ -474,7 +477,7 @@ are common macro names, you can easily modify the following snippet to provide y
 #define CATCH_ALT(param) CPPTRACE_CATCH_ALT(param)
 ```
 
-#### How it works
+### How it works
 
 C++ does not provide any language support for collecting stack traces when exceptions are thrown, however, exception
 handling under both the Itanium ABI and by SEH (used to implement C++ exceptions on windows) involves unwinding the
@@ -485,7 +488,7 @@ up a special try/catch system that can collect a stack trace when considered dur
 
 N.b.: This mechanism is also discussed in [P2490R3][P2490R3].
 
-#### Performance
+### Performance
 
 The fundamental mechanism for this functionality is generating a trace when a catch block is considered during an
 exception handler search phase. Internally a lightweight raw trace is generated upon consideration, which is quite
@@ -523,7 +526,7 @@ handler in a 100-deep call stack the total time would stil be on the order of on
 Nonetheless, I chose a default bookkeeping behavior for `CPPTRACE_TRY`/`CPPTRACE_CATCH` since it is safer with better
 performance guarantees for the most general possible set of users.
 
-### Traced Exception Objects
+## Traced Exception Objects
 
 Cpptrace provides a handful of traced exception classes which automatically collect stack traces when thrown. These
 are useful when throwing exceptions that may not be caught by `CPPTRACE_CATCH`.
@@ -611,7 +614,7 @@ namespace cpptrace {
 }
 ```
 
-## Wrapping std::exceptions
+### Wrapping std::exceptions
 
 > [!NOTE]
 > This section is largely obsolete now that cpptrace provides a better mechanism for collecting
@@ -632,7 +635,7 @@ CPPTRACE_WRAP_BLOCK(
 std::cout<<CPPTRACE_WRAP(foo.at(12))<<std::endl;
 ```
 
-## Exception handling with cpptrace
+### Exception handling with cpptrace exception objects
 
 > [!NOTE]
 > This section pertains to cpptrace traced exception objects and not the mechanism for collecting
@@ -652,10 +655,12 @@ try {
 }
 ```
 
-Additionally cpptrace provides a custom `std::terminate` handler that prints a stack trace from a cpptrace exception and otherwise behaves like the normal terminate handler and prints the stack trace involved in reaching `std::terminate`.
-The stack trace to `std::terminate` may be helpful or it may not, it depends on the implementation, but often if an
-implementation can't find an appropriate `catch` while unwinding it will jump directly to `std::terminate` giving
-good information.
+## Terminate Handling
+
+Cpptrace provides a custom `std::terminate` handler that prints stacktraces while otherwise behaving like the normal
+`std::terminate` handler. If a cpptrace exception object reaches `std::terminate` the trace from that exception is
+printed, otherwise a stack trace is generated at the point of the terminate handler. Often `std::terminate` is called
+directly without unwinding so the trace is preserved.
 
 To register this custom handler:
 
@@ -767,22 +772,34 @@ namespace cpptrace {
 }
 ```
 
+## Headers
+
+Cpptrace provides a handful of headers to make inclusion more minimal.
+| Header                      | Contents                                                                                                                                                                                              |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cpptrace/forward.hpp`      | `cpptrace::frame_ptr` and a few trace class forward declarations                                                                                                                                      |
+| `cpptrace/basic.hpp`        | Definitions for trace classes and the basic tracing APIs ([Stack Traces](#stack-traces), [Object Traces](#object-traces), [Raw Traces](#raw-traces), and [Signal-Safe Tracing](#signal-safe-tracing)) |
+| `cpptrace/exceptions.hpp`   | [Traced Exception Objects](#traced-exception-objects) and related utilities ([Wrapping std::exceptions](#wrapping-stdexceptions))                                                                     |
+| `cpptrace/from_current.hpp` | [Traces From All Exceptions](#traces-from-all-exceptions)                                                                                                                                             |
+| `cpptrace/io.hpp`           | `operator<<` overloads for `std::ostream` and `std::formatter`s                                                                                                                                       |
+| `cpptrace/utils.hpp`        | Utility functions, configuration functions, and terminate utilities ([Utilities](#utilities), [Configuration](#configuration), and [Terminate Handling](#terminate-handling))                         |
+
+The main cpptrace header is `cpptrace/cpptrace.hpp` which includes everything other than `from_current.hpp`.
+
 # Supported Debug Formats
 
-| Format                            | Supported |
-| --------------------------------- | --------- |
-| DWARF in binary                   | ✔️      |
-| GNU debug link                    | ️️✔️      |
-| Split dwarf (debug fission)       | ✔️*     |
-| DWARF in dSYM                     | ✔️      |
-| DWARF via Mach-O debug map        | ✔️      |
-| Windows debug symbols in PDB      | ✔️      |
-
-*There seem to be a couple issues upstream with libdwarf however they will hopefully be resolved soon.
+| Format                       | Supported |
+| ---------------------------- | --------- |
+| DWARF in binary              | ✔️      |
+| GNU debug link               | ️️✔️  |
+| Split dwarf (debug fission)  | ✔️      |
+| DWARF in dSYM                | ✔️      |
+| DWARF via Mach-O debug map   | ✔️      |
+| Windows debug symbols in PDB | ✔️      |
 
 DWARF5 added DWARF package files. As far as I can tell no compiler implements these yet.
 
-# Usage
+# How to Include The Library
 
 ## CMake FetchContent
 
@@ -793,7 +810,7 @@ include(FetchContent)
 FetchContent_Declare(
   cpptrace
   GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
-  GIT_TAG        v0.7.1 # <HASH or TAG>
+  GIT_TAG        v0.7.2 # <HASH or TAG>
 )
 FetchContent_MakeAvailable(cpptrace)
 target_link_libraries(your_target cpptrace::cpptrace)
@@ -809,7 +826,7 @@ information.
 
 ```sh
 git clone https://github.com/jeremy-rifkin/cpptrace.git
-git checkout v0.7.1
+git checkout v0.7.2
 mkdir cpptrace/build
 cd cpptrace/build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -852,7 +869,7 @@ you when installing new libraries.
 
 ```ps1
 git clone https://github.com/jeremy-rifkin/cpptrace.git
-git checkout v0.7.1
+git checkout v0.7.2
 mkdir cpptrace/build
 cd cpptrace/build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -870,7 +887,7 @@ To install just for the local user (or any custom prefix):
 
 ```sh
 git clone https://github.com/jeremy-rifkin/cpptrace.git
-git checkout v0.7.1
+git checkout v0.7.2
 mkdir cpptrace/build
 cd cpptrace/build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/wherever
@@ -953,7 +970,7 @@ make install
 cd ~/scratch/cpptrace-test
 git clone https://github.com/jeremy-rifkin/cpptrace.git
 cd cpptrace
-git checkout v0.7.1
+git checkout v0.7.2
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=On -DCPPTRACE_USE_EXTERNAL_LIBDWARF=On -DCMAKE_PREFIX_PATH=~/scratch/cpptrace-test/resources -DCMAKE_INSTALL_PREFIX=~/scratch/cpptrace-test/resources
@@ -973,7 +990,7 @@ cpptrace and its dependencies.
 Cpptrace is available through conan at https://conan.io/center/recipes/cpptrace.
 ```
 [requires]
-cpptrace/0.7.1
+cpptrace/0.7.2
 [generators]
 CMakeDeps
 CMakeToolchain
